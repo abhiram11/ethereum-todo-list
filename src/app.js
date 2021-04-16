@@ -3,7 +3,7 @@
 // Connect Client side application to the Blockchain -> Web3.js
 
 App = {
-    // contracts: {},
+    contracts: {},
 
     load: async () => {
         // load app...
@@ -11,12 +11,13 @@ App = {
         await App.loadWeb3() // CONNECT TO BLOCKCHAIN
         await App.loadAccount()
         await App.loadContract()
-
+        await App.render()
     },
 
     loadWeb3: async() => {
         if (typeof web3 !== 'undefined'){
             App.web3Provider = web3.currentProvider
+            // var contract = require("@truffle/contract");
             web3 = new Web3(web3.currentProvider)
         } else {
             window.alert("Please connect to Metamask..!!")
@@ -61,11 +62,18 @@ App = {
     loadContract: async () => {
 
         // Create javascript version of smart contract
-        const todoList = await $.getJSON('ToDoList.json')
-        App.contracts.ToDoList = TruffleContract(todoList)
+        const ToDoList = await $.getJSON('ToDoList.json')
+        console.log(ToDoList)
+        App.contracts.ToDoList = TruffleContract(ToDoList)
         App.contracts.ToDoList.setProvider(App.web3Provider)
         
-        console.log(todoList)
+        App.ToDoList = await App.contracts.ToDoList.deployed()
+
+    },
+
+    render: async () => {
+
+        $('#account').html(App.account)
 
 
     }
