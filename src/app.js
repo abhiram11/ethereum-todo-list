@@ -3,6 +3,7 @@
 // Connect Client side application to the Blockchain -> Web3.js
 
 App = {
+    loading: false,
     contracts: {},
 
     load: async () => {
@@ -73,10 +74,71 @@ App = {
 
     render: async () => {
 
+        //render information and tasks, insert logic as well to avoid double rendering..
+        if (App.loading) {
+            return
+        }
+
+        App.setLoading(true)
+
         $('#account').html(App.account)
+        
+        // render tasks to the page
+        await App.renderTasks()
+
+        App.setLoading(false)
+
+    },
+
+    renderTasks: async () => {
+        //load tasks from blockchain, thhen render out each task one by one with a new task template and then show it on the page
+        // take taskTemplate from index having checklist and content
+        const taskCount = await App.ToDoList.taskCount()
+        const $taskTemplate = $('.taskTemplate')
+
+        for(var i = 1; i <= taskCount; i++) {
+            //fetch all values of task into id name and completed
+            const task = await App.ToDoList.tasks(i)
+            const taskID = task[0].toNumber()
+            const taskContent = task[1]
+            const taskCompleted = task[2]
+
+            console.log(taskID, taskContent, taskCompleted)
+            
+            //create new html for task
+            const $newTaskTemplate = $taskTemplate.clone()
+            $newTaskTemplate.find('.content').html(taskContent)
+            $newTaskTemplate.find('input').prop('name', taskID).prop('checked', taskCompleted)//.on('click', App.toggleCompleted)
+            // ^input is the checkbox
+
+            //put the task in correct list, i.e, completed or not
+            if (taskCompleted) {
+                $('#completedTaskList').append($newTaskTemplate)
+            } else {
+                $('#taskList').append($newTaskTemplate)
+            }
+
+            // show the tasks
+            $newTaskTemplate.show()
+
+        }
+        
+    },
+
+    setLoading: (boolean) => {
+        App.loading = boolean
+        const loader = $('#loader')
+        const content = $('content')
+        if (boolean) {
+            loader.show()
+            content.hide()
+        } else {
+            loader.hide()
+            content.show()
+        }
+    },
 
 
-    }
 }
 
 //load the app whenever the project loads..
